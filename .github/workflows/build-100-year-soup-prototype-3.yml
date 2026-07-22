@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - build/100-year-soup-prototype-3-20260722
+  pull_request:
+    branches:
+      - build/100-year-soup-prototype-3-base-20260722
 
 permissions:
   contents: read
