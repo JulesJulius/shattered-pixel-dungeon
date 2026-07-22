@@ -1,0 +1,47 @@
+name: Build 100 Year Soup Prototype 3
+
+on:
+  push:
+    branches:
+      - build/100-year-soup-prototype-3-20260722
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply Prototype 3 source patch
+        run: |
+          gzip -dc .github/100-year-soup-prototype-3.patch.gz > /tmp/100-year-soup-prototype-3.patch
+          git apply --check /tmp/100-year-soup-prototype-3.patch
+          git apply /tmp/100-year-soup-prototype-3.patch
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: |
+          chmod +x gradlew
+          ./gradlew :android:assembleDebug --stacktrace
+
+      - name: Collect APK
+        run: |
+          mkdir -p artifact
+          APK="$(find android/build/outputs/apk -type f -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          cp "$APK" artifact/100-year-soup-prototype-3-debug.apk
+          sha256sum artifact/100-year-soup-prototype-3-debug.apk > artifact/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 100-year-soup-prototype-3-debug
+          path: artifact/
+          if-no-files-found: error
